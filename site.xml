@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.jboss.tools.maven.sourcelookup.feature_1.6.0.201303182131.jar" id="org.jboss.tools.maven.sourcelookup.feature" version="1.6.0.201303182131">
+      <category name="org.jboss.tools.maven.sourcelookup.feature"/>
+   </feature>
+   <category-def name="org.jboss.tools.maven.sourcelookup.feature" label="JBoss Source Lookup"/>
+</site>
