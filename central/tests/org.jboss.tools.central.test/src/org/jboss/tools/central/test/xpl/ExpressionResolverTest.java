@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import junit.framework.Assert;
 
+import org.jboss.tools.central.internal.xpl.ExpressionResolutionException;
 import org.jboss.tools.central.internal.xpl.ExpressionResolver;
 import org.junit.Test;
 
@@ -16,26 +17,27 @@ public class ExpressionResolverTest {
 	ExpressionResolver resolver = ExpressionResolver.DEFAULT_RESOLVER;
 	
 	@Test
-    public void testResolverWithBlankExpression() {
+    public void testResolverWithBlankExpression() throws ExpressionResolutionException {
         assertEquals("", resolver.resolve(""));
     }
 
     @Test
-    public void testResolverWithNullExpression() {
+    public void testResolverWithNullExpression() throws ExpressionResolutionException {
         assertEquals(null,resolver.resolve(null));
     }
 
     @Test
-    public void testCanonicalResolver() {
+    public void testCanonicalResolver() throws ExpressionResolutionException {
         assertEquals("some expression", resolver.resolve("some expression"));
     }
 
     /**
      * Test that a valid expression to a system property reference which has
      * no definition throws an ISE
+     * @throws ExpressionResolutionException 
      */
-    @Test(expected = IllegalStateException.class)
-    public void testUnresolvedReference() {
+    @Test(expected = ExpressionResolutionException.class)
+    public void testUnresolvedReference() throws ExpressionResolutionException {
         String value = "${no-such-system-property}";
         String resolved = resolver.resolve(value);
         fail("Did not fail with ISE: "+resolved);
@@ -43,9 +45,10 @@ public class ExpressionResolverTest {
 
     /**
      * Test that a incomplete expression to a system property reference throws an ISE
+     * @throws ExpressionResolutionException 
      */
-    @Test(expected = IllegalStateException.class)
-    public void testIncompleteReference() {
+    @Test(expected = ExpressionResolutionException.class)
+    public void testIncompleteReference() throws ExpressionResolutionException {
         System.setProperty("test.property1", "test.property1.value");
         String value = "${test.property1";
         String resolved = resolver.resolve(value);
@@ -54,9 +57,10 @@ public class ExpressionResolverTest {
 
     /**
      * Validate a single system property expression sees the system property value.
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testSystemPropertyRef() {
+    public void testSystemPropertyRef() throws ExpressionResolutionException {
         System.setProperty("test.property1", "test.property1.value");
         try {
             String value = "${test.property1}";
@@ -70,9 +74,10 @@ public class ExpressionResolverTest {
      * Test an expression that contains more than one system property name to
      * see that the second property value is used when the first property
      * is not defined.
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testSystemPropertyRefs() {
+    public void testSystemPropertyRefs() throws ExpressionResolutionException {
         System.setProperty("test.property2", "test.property2.value");
         try {
             String value = "${test.property1,test.property2}";
@@ -85,27 +90,30 @@ public class ExpressionResolverTest {
     /**
      * Validate that a system property expression for a property with no value
      * and a default provides sees the default value.
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testSystemPropertyRefDefault() {
+    public void testSystemPropertyRefDefault() throws ExpressionResolutionException {
         final String value = "${test.property2:test.property2.default.value}";
         assertEquals("test.property2.default.value", resolver.resolve(value));
     }
 
     /** 
      * Validate that a property
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testRecursiveProperty() {
+    public void testRecursiveProperty() throws ExpressionResolutionException {
     	 final String value = "${test.property1,test.property2:defaultValue}";
     	 assertEquals(resolver.resolve(value),"defaultValue");
     }
     
     /**
      * Validate that a environment variable reference is resolved.
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testSystemEnvVarRef() {
+    public void testSystemEnvVarRef() throws ExpressionResolutionException {
         // Since we cannot set ENV vars from java, grab first one
         String[] envvar = findEnvVar();
         if (envvar[0].length() == 0) {
@@ -120,9 +128,10 @@ public class ExpressionResolverTest {
     /**
      * Validate that a environment variable reference is overriden by a
      * system property of the same name prefixed with "env.".
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testSystemEnvVarRefOverride() {
+    public void testSystemEnvVarRefOverride() throws ExpressionResolutionException {
         // Since we cannot set ENV vars from java, grab first one
         String[] envvar = findEnvVar();
         if (envvar[0].length() == 0) {
@@ -145,9 +154,10 @@ public class ExpressionResolverTest {
     
     /** 
      * Make sure to work with local configured properties
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testLocalProperties() {
+    public void testLocalProperties() throws ExpressionResolutionException {
     	Properties p = new Properties();
     	p.setProperty("foo", "fooValue");
     	
@@ -163,9 +173,10 @@ public class ExpressionResolverTest {
 
     /** 
      * Make sure to work with local configured properties that delegates to system properties
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testLocalDelegatedToSystemProperties() {
+    public void testLocalDelegatedToSystemProperties() throws ExpressionResolutionException {
     	Properties p = new Properties(System.getProperties());
     	p.setProperty("foo", "fooValue");
     	
@@ -180,9 +191,10 @@ public class ExpressionResolverTest {
     }
     /**
      * Make sure nesting works right
+     * @throws ExpressionResolutionException 
      */
     @Test
-    public void testNesting() {
+    public void testNesting() throws ExpressionResolutionException {
         assertEquals("{blah}", resolver.resolve("${resolves.to.nothing:{blah}}"));
         assertEquals("{blah}", resolver.resolve("${resolves.to.nothing,also.resolves.to.nothing:{blah}}"));
         assertEquals(System.getProperty("os.name"), resolver.resolve("${os.name:{blah}}"));
